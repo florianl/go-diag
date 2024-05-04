@@ -1,6 +1,6 @@
 package diag
 
-import "golang.org/x/sys/unix"
+import "github.com/florianl/go-diag/internal/unix"
 
 type TCP struct {
 	Diag

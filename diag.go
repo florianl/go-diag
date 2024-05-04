@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/florianl/go-diag/internal/unix"
 	"github.com/mdlayher/netlink"
-	"golang.org/x/sys/unix"
 )
 
 // diagConn defines a subset of netlink.Conn.
@@ -153,7 +153,7 @@ func (d *Diag) dump(header InetDiagReqV2) ([]Object, error) {
 
 	req := netlink.Message{
 		Header: netlink.Header{
-			Type:  netlink.HeaderType(20),
+			Type:  netlink.HeaderType(unix.SOCK_DIAG_BY_FAMILY),
 			Flags: netlink.Request | netlink.Dump,
 			PID:   0,
 		},
