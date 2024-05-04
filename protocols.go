@@ -62,6 +62,7 @@ type Raw struct {
 	Diag
 }
 
+// Raw allows to read and alter Raw socker information.
 func (d *Diag) Raw() *Raw {
 	return &Raw{*d}
 }
