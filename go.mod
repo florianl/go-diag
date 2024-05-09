@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/josharian/native v1.1.0
 	github.com/mdlayher/netlink v1.7.2
-	golang.org/x/sys v0.19.0
+	golang.org/x/sys v0.20.1-0.20240506173926-6dfb94eaa3bd
 )
 
 require (
