@@ -53,10 +53,10 @@ type InetDiagReqV2 struct {
 
 // Based on inet_diag_sockid
 type SockID struct {
-	SPort  uint16 // network byte order
-	DPort  uint16 // network byte order
-	Src    [4]uint32
-	Dst    [4]uint32
+	SPort  uint16    // in network byte order, use Ntohs() for host byte order
+	DPort  uint16    // in network byte order, use Ntohs() for host byte order
+	Src    [4]uint32 // use ToNetipAddr() for netip.Addr representation
+	Dst    [4]uint32 // use ToNetipAddr() for netip.Addr representation
 	If     uint32
 	Cookie [2]uint32
 }
