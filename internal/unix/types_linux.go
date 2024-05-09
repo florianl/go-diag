@@ -15,6 +15,5 @@ const (
 
 	NETLINK_SOCK_DIAG = linux.NETLINK_SOCK_DIAG
 
-	// https://go-review.googlesource.com/c/sys/+/579996
-	SOCK_DIAG_BY_FAMILY = 20
+	SOCK_DIAG_BY_FAMILY = linux.SOCK_DIAG_BY_FAMILY
 )
