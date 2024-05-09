@@ -113,7 +113,6 @@ type Attribute struct {
 // Based on inet_diag_sockopt
 // Bitfield1 and Bitfield2 are the Go representations for the
 // following bit fields:
-// ```
 //
 //	__u8  recverr:1,
 //	      is_icsk:1,
@@ -127,8 +126,6 @@ type Attribute struct {
 //	      recverr_rfc4884:1,
 //	      defer_connect:1,
 //	      unused:5;
-//
-// / ````
 type SockOpt struct {
 	Bitfield1 uint8
 	Bitfield2 uint8
