@@ -1,6 +1,6 @@
 module github.com/florianl/go-diag
 
-go 1.21
+go 1.18
 
 require (
 	github.com/josharian/native v1.1.0
