@@ -2,7 +2,6 @@ package diag
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"time"
 
@@ -83,13 +82,13 @@ func extractAttributes(data []byte, info *Attribute) error {
 		case inetDiagMemInfo:
 			mi := &MemInfo{}
 			err := unmarshalStruct(ad.Bytes(), mi)
-			multiError = errors.Join(multiError, err)
+			multiError = errorsJoin(multiError, err)
 			info.MemInfo = mi
 		// case inetDiagInfo:
 		case inetDiagVegasInfo:
 			vi := &VegasInfo{}
 			err := unmarshalStruct(ad.Bytes(), vi)
-			multiError = errors.Join(multiError, err)
+			multiError = errorsJoin(multiError, err)
 			info.VegasInfo = vi
 		case inetDiagCong:
 			info.Cong = stringPtr(ad.String())
@@ -103,7 +102,7 @@ func extractAttributes(data []byte, info *Attribute) error {
 		case inetDiagDCTCPInfo:
 			di := &DCTCPInfo{}
 			err := unmarshalStruct(ad.Bytes(), di)
-			multiError = errors.Join(multiError, err)
+			multiError = errorsJoin(multiError, err)
 			info.DCTCPInfo = di
 		case inetDiagProtocol:
 			info.Protocol = uint8Ptr(ad.Uint8())
@@ -119,7 +118,7 @@ func extractAttributes(data []byte, info *Attribute) error {
 		case inetDiagBBRInfo:
 			bbrInfo := &BBRInfo{}
 			err := unmarshalStruct(ad.Bytes(), bbrInfo)
-			multiError = errors.Join(multiError, err)
+			multiError = errorsJoin(multiError, err)
 			info.BBRInfo = bbrInfo
 		case inetDiagClassID:
 			info.ClassID = uint32Ptr(ad.Uint32())
@@ -131,10 +130,10 @@ func extractAttributes(data []byte, info *Attribute) error {
 		case inetDiagSockOpt:
 			so := &SockOpt{}
 			err := unmarshalStruct(ad.Bytes(), so)
-			multiError = errors.Join(multiError, err)
+			multiError = errorsJoin(multiError, err)
 			info.SockOpt = so
 		default:
-			multiError = errors.Join(multiError, fmt.Errorf("type %d not implemented", adType))
+			multiError = errorsJoin(multiError, fmt.Errorf("type %d not implemented", adType))
 		}
 	}
 	return multiError
