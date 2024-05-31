@@ -2,7 +2,6 @@ package diag
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 
 	"github.com/florianl/go-diag/internal/unix"
@@ -33,7 +32,7 @@ func extractUnixAttributes(data []byte, info *UnixAttribute) error {
 		case unixDiagVFS:
 			vfs := &UnixDiagVfs{}
 			err := unmarshalStruct(ad.Bytes(), vfs)
-			multiError = errors.Join(multiError, err)
+			multiError = errorsJoin(multiError, err)
 			info.Vfs = vfs
 		case unixDiagPeer:
 			info.Peer = uint32Ptr(ad.Uint32())
@@ -46,22 +45,22 @@ func extractUnixAttributes(data []byte, info *UnixAttribute) error {
 		case unixDiagRQLen:
 			rqlen := &UnixDiagRqLen{}
 			err := unmarshalStruct(ad.Bytes(), rqlen)
-			multiError = errors.Join(multiError, err)
+			multiError = errorsJoin(multiError, err)
 			info.RQLen = rqlen
 		case unixDiagMemInfo:
 			mi := &MemInfo{}
 			err := unmarshalStruct(ad.Bytes(), mi)
-			multiError = errors.Join(multiError, err)
+			multiError = errorsJoin(multiError, err)
 			info.MemInfo = mi
 		case unixDiagShutdown:
 			info.Shutdown = uint8Ptr(ad.Uint8())
 		case unixDiagUID:
 			info.UID = uint32Ptr(ad.Uint32())
 		default:
-			multiError = errors.Join(multiError, fmt.Errorf("unix type %d not implemented", adType))
+			multiError = errorsJoin(multiError, fmt.Errorf("unix type %d not implemented", adType))
 		}
 	}
-	return errors.Join(multiError, ad.Err())
+	return errorsJoin(multiError, ad.Err())
 }
 
 // UnixOption defines a query to Unix sockets.
