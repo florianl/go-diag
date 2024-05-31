@@ -1,28 +1,45 @@
 package diag
 
-import "github.com/florianl/go-diag/internal/unix"
+import (
+	"github.com/florianl/go-diag/internal/unix"
+)
 
-type TCP struct {
-	Diag
+// NetOption defines a query to network sockets.
+type NetOption struct {
+	Family   uint8
+	Protocol uint8
+	State    uint32
 }
 
-// TCP allows to read and alter TCP socker information.
-func (d *Diag) TCP() *TCP {
-	return &TCP{*d}
+// NetDump returns network socket information.
+func (d *Diag) NetDump(opt *NetOption) ([]NetObject, error) {
+	header := InetDiagReqV2{
+		Family:   opt.Family,
+		Protocol: opt.Protocol,
+		States:   opt.State,
+	}
+
+	respMsgs, err := d.dumpQuery(header)
+	if err != nil {
+		return nil, err
+	}
+	return handleNetResponse(respMsgs)
 }
 
-func (t *TCP) Dump() ([]Object, error) {
-	var results []Object
-
+// Dump returns all TCP connections.
+// It is a wrapper around (*Diag).NetDump(..) for IPPROTO_TCP and
+// the families AF_INET and AF_INET6 for all TCP states.
+func (d *Diag) TCPDump() ([]NetObject, error) {
+	var results []NetObject
+	opt := &NetOption{
+		Protocol: unix.IPPROTO_TCP,
+		State:    0xFFFFFFFF,
+	}
 	for _, family := range []uint8{unix.AF_INET, unix.AF_INET6} {
-		header := InetDiagReqV2{
-			Family:   family,
-			Protocol: unix.IPPROTO_TCP,
-			States:   1 << 1,
-		}
-		objs, err := t.dump(header)
+		opt.Family = family
+		objs, err := d.NetDump(opt)
 		if err != nil {
-			return results, err
+			return nil, err
 		}
 		results = append(results, objs...)
 	}
@@ -30,55 +47,20 @@ func (t *TCP) Dump() ([]Object, error) {
 	return results, nil
 }
 
-type UDP struct {
-	Diag
-}
-
-// UDP allows to read and alter UDP socker information.
-func (d *Diag) UDP() *UDP {
-	return &UDP{*d}
-}
-
-func (u *UDP) Dump() ([]Object, error) {
-	var results []Object
-
-	for _, family := range []uint8{unix.AF_INET, unix.AF_INET6} {
-		header := InetDiagReqV2{
-			Family:   family,
-			Protocol: unix.IPPROTO_UDP,
-			States:   1 << 1,
-		}
-		objs, err := u.dump(header)
-		if err != nil {
-			return results, err
-		}
-		results = append(results, objs...)
+// Dump returns all TCP connections.
+// It is a wrapper around (*Diag).NetDump(..) for IPPROTO_UDP and
+// the families AF_INET and AF_INET6 for all UDP states.
+func (d *Diag) UDPDump() ([]NetObject, error) {
+	var results []NetObject
+	opt := &NetOption{
+		Protocol: unix.IPPROTO_UDP,
+		State:    0xFFFFFFFF,
 	}
-
-	return results, nil
-}
-
-type Raw struct {
-	Diag
-}
-
-// Raw allows to read and alter Raw socker information.
-func (d *Diag) Raw() *Raw {
-	return &Raw{*d}
-}
-
-func (r *Raw) Dump() ([]Object, error) {
-	var results []Object
-
 	for _, family := range []uint8{unix.AF_INET, unix.AF_INET6} {
-		header := InetDiagReqV2{
-			Family:   family,
-			Protocol: unix.IPPROTO_RAW,
-			States:   1 << 1,
-		}
-		objs, err := r.dump(header)
+		opt.Family = family
+		objs, err := d.NetDump(opt)
 		if err != nil {
-			return results, err
+			return nil, err
 		}
 		results = append(results, objs...)
 	}

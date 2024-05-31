@@ -51,6 +51,17 @@ type InetDiagReqV2 struct {
 	ID       SockID
 }
 
+// Based on unix_diag_req
+type UnixDiagReq struct {
+	Family   uint8
+	Protocol uint8
+	Pad      uint16
+	States   uint32
+	Ino      uint32
+	Show     uint32
+	Cookie   [2]uint32
+}
+
 // Based on inet_diag_sockid
 type SockID struct {
 	SPort  uint16    // in network byte order, use Ntohs() for host byte order
@@ -74,7 +85,7 @@ func unmarshalStruct(data []byte, s interface{}) error {
 
 // Based on inet_diag_msg
 type DiagMsg struct {
-	Famiy   uint8
+	Family  uint8
 	State   uint8
 	Timer   uint8
 	Retrans uint8
@@ -86,14 +97,41 @@ type DiagMsg struct {
 	INode   uint32
 }
 
-// Object represents a generic object
-type Object struct {
-	DiagMsg
-	Attribute
+// Based on unix_diag_msg
+type UnixDiagMsg struct {
+	Family uint8
+	Type   uint8
+	State  uint8
+	Pad    uint8
+	Ino    uint32
+	Cookie [2]uint32
 }
 
-// Attribute contains various elements
-type Attribute struct {
+// Based on unix_diag_vfs
+type UnixDiagVfs struct {
+	Ino uint32
+	Dev uint32
+}
+
+// Based on unix_diag_rqlen
+type UnixDiagRqLen struct {
+	RQueue uint32
+	WQueue uint32
+}
+
+// NetObject represents a network response
+type NetObject struct {
+	DiagMsg
+	NetAttribute
+}
+
+type UnixObject struct {
+	UnixDiagMsg
+	UnixAttribute
+}
+
+// NetAttribute contains various elements
+type NetAttribute struct {
 	MemInfo   *MemInfo
 	VegasInfo *VegasInfo
 	Cong      *string
@@ -108,6 +146,17 @@ type Attribute struct {
 	ClassID   *uint32
 	CGroupID  *uint64
 	SockOpt   *SockOpt
+}
+
+// UnixAttribute contains various elements
+type UnixAttribute struct {
+	Name     *string
+	Vfs      *UnixDiagVfs
+	RQLen    *UnixDiagRqLen
+	MemInfo  *MemInfo
+	Shutdown *uint8
+	UID      *uint32
+	Peer     *uint32
 }
 
 // Based on inet_diag_sockopt

@@ -68,11 +68,12 @@ func (d *Diag) query(req netlink.Message) ([]netlink.Message, error) {
 	return d.con.Receive()
 }
 
-func extractAttributes(data []byte, info *Attribute) error {
+func extractAttributes(data []byte, info *NetAttribute) error {
 	ad, err := netlink.NewAttributeDecoder(data)
 	if err != nil {
 		return err
 	}
+	var infoData []byte
 	var multiError error
 	for ad.Next() {
 		switch adType := ad.Type(); adType {
@@ -84,7 +85,8 @@ func extractAttributes(data []byte, info *Attribute) error {
 			err := unmarshalStruct(ad.Bytes(), mi)
 			multiError = errorsJoin(multiError, err)
 			info.MemInfo = mi
-		// case inetDiagInfo:
+		case inetDiagInfo:
+			infoData = ad.Bytes()
 		case inetDiagVegasInfo:
 			vi := &VegasInfo{}
 			err := unmarshalStruct(ad.Bytes(), vi)
@@ -133,18 +135,32 @@ func extractAttributes(data []byte, info *Attribute) error {
 			multiError = errorsJoin(multiError, err)
 			info.SockOpt = so
 		default:
-			multiError = errorsJoin(multiError, fmt.Errorf("type %d not implemented", adType))
+			multiError = errorsJoin(multiError, fmt.Errorf("net type %d not implemented", adType))
 		}
 	}
+	if err := errorsJoin(multiError, ad.Err()); err != nil {
+		return err
+	}
+
+	if len(infoData) != 0 {
+		switch *info.Protocol {
+		// TODO:
+		//case unix.IPPROTO_TCP: -> tools/include/uapi/linux/tcp.h tcp_info
+		//case unix.IPPROTO_MPTCP:
+		//case unix.IPPROTO_SCTP:
+		default:
+			multiError = errorsJoin(multiError, fmt.Errorf("unhandled IPPROTO (%d) for INET_DIAG_INFO",
+				*info.Protocol))
+		}
+	}
+
 	return multiError
 }
 
-func (d *Diag) dump(header InetDiagReqV2) ([]Object, error) {
-	var results []Object
-
+func (d *Diag) dumpQuery(header interface{}) ([]netlink.Message, error) {
 	tcminfo, err := marshalStruct(header)
 	if err != nil {
-		return results, err
+		return nil, err
 	}
 
 	data := []byte{}
@@ -159,22 +175,39 @@ func (d *Diag) dump(header InetDiagReqV2) ([]Object, error) {
 		Data: data,
 	}
 
-	msgs, err := d.query(req)
-	if err != nil {
-		return results, err
-	}
+	return d.query(req)
+}
+
+func handleNetResponse(msgs []netlink.Message) ([]NetObject, error) {
+	var results []NetObject
+	sizeOfRecvMsg := binary.Size(DiagMsg{})
 
 	for _, msg := range msgs {
-		var result Object
-		sizeOfDiagMsg := binary.Size(result.DiagMsg)
-		if err := unmarshalStruct(msg.Data[:sizeOfDiagMsg], &result.DiagMsg); err != nil {
-			return results, err
+		var result NetObject
+		if err := unmarshalStruct(msg.Data[:sizeOfRecvMsg], &result.DiagMsg); err != nil {
+			return nil, err
 		}
-		if err := extractAttributes(msg.Data[sizeOfDiagMsg:], &result.Attribute); err != nil {
-			return results, err
+		if err := extractAttributes(msg.Data[sizeOfRecvMsg:], &result.NetAttribute); err != nil {
+			return nil, err
 		}
 		results = append(results, result)
 	}
+	return results, nil
+}
 
+func handleUnixResponse(msgs []netlink.Message) ([]UnixObject, error) {
+	var results []UnixObject
+	sizeOfRecvMsg := binary.Size(UnixDiagMsg{})
+
+	for _, msg := range msgs {
+		var result UnixObject
+		if err := unmarshalStruct(msg.Data[:sizeOfRecvMsg], &result.UnixDiagMsg); err != nil {
+			return nil, err
+		}
+		if err := extractUnixAttributes(msg.Data[sizeOfRecvMsg:], &result.UnixAttribute); err != nil {
+			return nil, err
+		}
+		results = append(results, result)
+	}
 	return results, nil
 }
