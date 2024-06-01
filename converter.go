@@ -1,8 +1,11 @@
 package diag
 
 import (
+	"fmt"
 	"net/netip"
 	"unsafe"
+
+	"github.com/florianl/go-diag/internal/unix"
 )
 
 func stringPtr(v string) *string {
@@ -30,6 +33,24 @@ func ToNetipAddr(in [4]uint32) netip.Addr {
 	s := unsafe.Slice((*byte)(unsafe.Pointer(&in[0])), limiter)
 	ip, _ := netip.AddrFromSlice(s[:limiter])
 	return ip
+}
+
+// ToNetipAddrWithFamily converts an IP in [4]uint32 representation to netip.Addr
+// using family as hint to interpret the IP.
+func ToNetipAddrWithFamily(family uint8, in [4]uint32) (netip.Addr, error) {
+	var limiter int
+	switch family {
+	case unix.AF_INET:
+		limiter = 4
+	case unix.AF_INET6:
+		limiter = 16
+	default:
+		return netip.Addr{},
+			fmt.Errorf("expected AF_INET or AF_INET6 as family, but got %d", family)
+	}
+	s := unsafe.Slice((*byte)(unsafe.Pointer(&in[0])), limiter)
+	ip, _ := netip.AddrFromSlice(s[:limiter])
+	return ip, nil
 }
 
 // Ntohs converts in from network byte order to host byte order represenation.
