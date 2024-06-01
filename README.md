@@ -24,7 +24,7 @@ func main() {
 	defer nl.Close()
 
 	// Dump all TCP sockets
-	tcpSockets, err := nl.TCP().Dump()
+	tcpSockets, err := nl.TCPDump()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "could not dump data: %v\n", err)
 		return
