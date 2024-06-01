@@ -22,12 +22,12 @@ func uint64Ptr(v uint64) *uint64 {
 }
 
 // ToNetipAddr converts an IP in [4]uint32 representation to netip.Addr.
+//
+// For the special case 0.0.0.0 or :: it can return an unspecified address.
+// For details, see [netip.IsUnspecified].
 func ToNetipAddr(in [4]uint32) netip.Addr {
-	s := unsafe.Slice((*byte)(unsafe.Pointer(&in[0])), 16)
-	limiter := 16
-	if in[1] == 0 && in[2] == 0 && in[3] == 0 {
-		limiter = 4
-	}
+	limiter := 16 // 4 * sizeof(uint32)
+	s := unsafe.Slice((*byte)(unsafe.Pointer(&in[0])), limiter)
 	ip, _ := netip.AddrFromSlice(s[:limiter])
 	return ip
 }
