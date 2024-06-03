@@ -146,6 +146,8 @@ type NetAttribute struct {
 	ClassID   *uint32
 	CGroupID  *uint64
 	SockOpt   *SockOpt
+	TcpInfo   *TcpInfo
+	SctpInfo  *SctpInfo
 }
 
 // UnixAttribute contains various elements

@@ -143,11 +143,21 @@ func extractAttributes(data []byte, info *NetAttribute) error {
 	}
 
 	if len(infoData) != 0 {
-		switch *info.Protocol {
-		// TODO:
-		//case unix.IPPROTO_TCP: -> tools/include/uapi/linux/tcp.h tcp_info
-		//case unix.IPPROTO_MPTCP:
-		//case unix.IPPROTO_SCTP:
+		switch uint16(*info.Protocol) {
+		case unix.IPPROTO_TCP:
+			tcpInfo := &TcpInfo{}
+			data := make([]byte, binary.Size(tcpInfo))
+			copy(data, infoData)
+			err := unmarshalStruct(data, tcpInfo)
+			multiError = errorsJoin(multiError, err)
+			info.TcpInfo = tcpInfo
+		case unix.IPPROTO_SCTP:
+			sctpInfo := &SctpInfo{}
+			data := make([]byte, binary.Size(sctpInfo))
+			copy(data, infoData)
+			err := unmarshalStruct(data, sctpInfo)
+			multiError = errorsJoin(multiError, err)
+			info.SctpInfo = sctpInfo
 		default:
 			multiError = errorsJoin(multiError, fmt.Errorf("unhandled IPPROTO (%d) for INET_DIAG_INFO",
 				*info.Protocol))
