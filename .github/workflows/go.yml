@@ -25,6 +25,9 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - name: Test with -race
       run: go test -race -count=5 ./...
+    - name: Integrationtest
+      run: go test -v -tags=integration ./...
+
 
   code-check:
     strategy:
