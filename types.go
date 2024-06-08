@@ -159,6 +159,7 @@ type UnixAttribute struct {
 	Shutdown *uint8
 	UID      *uint32
 	Peer     *uint32
+	Icons    []uint32
 }
 
 // Based on inet_diag_sockopt

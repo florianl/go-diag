@@ -39,9 +39,11 @@ func extractUnixAttributes(data []byte, info *UnixAttribute) error {
 		case unixDiagIcons:
 			tmp := ad.Bytes()
 			numIcons := len(tmp) / 4
+			icons := make([]uint32, 0, numIcons)
 			for i := 0; i < numIcons; i++ {
-				fmt.Printf("icon: %d\t%d\n", i, binary.LittleEndian.Uint32(tmp[i*4:(i+1)*4]))
+				icons = append(icons, binary.LittleEndian.Uint32(tmp[i*4:(i+1)*4]))
 			}
+			info.Icons = icons
 		case unixDiagRQLen:
 			rqlen := &UnixDiagRqLen{}
 			err := unmarshalStruct(ad.Bytes(), rqlen)
