@@ -169,7 +169,7 @@ func (d *Diag) NetDump(opt *NetOption) ([]NetObject, error) {
 	if err != nil {
 		return nil, err
 	}
-	return handleNetResponse(respMsgs)
+	return handleNetResponse(respMsgs, d.skipOptional)
 }
 
 // Dump returns all TCP connections.

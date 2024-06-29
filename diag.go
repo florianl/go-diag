@@ -25,7 +25,8 @@ var _ diagConn = &netlink.Conn{}
 
 // Diag represents a netlink wrapper
 type Diag struct {
-	con diagConn
+	con          diagConn
+	skipOptional bool
 }
 
 // Open establishes a netlink socket for traffic control
@@ -188,7 +189,7 @@ func (d *Diag) dumpQuery(header interface{}) ([]netlink.Message, error) {
 	return d.query(req)
 }
 
-func handleNetResponse(msgs []netlink.Message) ([]NetObject, error) {
+func handleNetResponse(msgs []netlink.Message, skipOptional bool) ([]NetObject, error) {
 	var results []NetObject
 	sizeOfRecvMsg := binary.Size(DiagMsg{})
 
@@ -196,6 +197,9 @@ func handleNetResponse(msgs []netlink.Message) ([]NetObject, error) {
 		var result NetObject
 		if err := unmarshalStruct(msg.Data[:sizeOfRecvMsg], &result.DiagMsg); err != nil {
 			return nil, err
+		}
+		if skipOptional {
+			continue
 		}
 		if err := extractAttributes(msg.Data[sizeOfRecvMsg:], &result.NetAttribute); err != nil {
 			return nil, err
@@ -205,7 +209,7 @@ func handleNetResponse(msgs []netlink.Message) ([]NetObject, error) {
 	return results, nil
 }
 
-func handleUnixResponse(msgs []netlink.Message) ([]UnixObject, error) {
+func handleUnixResponse(msgs []netlink.Message, skipOptional bool) ([]UnixObject, error) {
 	var results []UnixObject
 	sizeOfRecvMsg := binary.Size(UnixDiagMsg{})
 
@@ -213,6 +217,9 @@ func handleUnixResponse(msgs []netlink.Message) ([]UnixObject, error) {
 		var result UnixObject
 		if err := unmarshalStruct(msg.Data[:sizeOfRecvMsg], &result.UnixDiagMsg); err != nil {
 			return nil, err
+		}
+		if skipOptional {
+			continue
 		}
 		if err := extractUnixAttributes(msg.Data[sizeOfRecvMsg:], &result.UnixAttribute); err != nil {
 			return nil, err

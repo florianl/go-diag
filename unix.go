@@ -85,7 +85,7 @@ func (d *Diag) UnixDump(opt *UnixOption) ([]UnixObject, error) {
 	if err != nil {
 		return nil, err
 	}
-	objs, err := handleUnixResponse(respMsgs)
+	objs, err := handleUnixResponse(respMsgs, d.skipOptional)
 	if err != nil {
 		return nil, err
 	}

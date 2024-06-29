@@ -11,6 +11,11 @@ import (
 type Config struct {
 	// NetNS defines the network namespace
 	NetNS int
+
+	// SkipOptional allows to skip decoding of
+	// optional values likes NetAttribute and
+	// UnixAttribute.
+	SkipOptional bool
 }
 
 const (
