@@ -154,6 +154,7 @@ type SctpInfo struct {
 type NetOption struct {
 	Family   uint8
 	Protocol uint8
+	Ext      uint8
 	State    uint32
 	ID       SockID
 }
@@ -163,6 +164,7 @@ func (d *Diag) NetDump(opt *NetOption) ([]NetObject, error) {
 	header := InetDiagReqV2{
 		Family:   opt.Family,
 		Protocol: opt.Protocol,
+		Ext:      opt.Ext,
 		States:   opt.State,
 		ID:       opt.ID,
 	}
