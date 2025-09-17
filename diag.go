@@ -99,7 +99,11 @@ func extractAttributes(data []byte, info *NetAttribute) error {
 			info.TOS = uint8Ptr(ad.Uint8())
 		case inetDiagTClass:
 			info.TClass = uint8Ptr(ad.Uint8())
-		// case inetDiagSKMemInfo:
+		case inetDiagSKMemInfo:
+			si := &SkMemInfo{}
+			err := unmarshalStruct(ad.Bytes(), si)
+			multiError = errorsJoin(multiError, err)
+			info.SkMemInfo = si
 		case inetDiagShutdown:
 			info.Shutdown = uint8Ptr(ad.Uint8())
 		case inetDiagDCTCPInfo:
@@ -143,25 +147,35 @@ func extractAttributes(data []byte, info *NetAttribute) error {
 		return err
 	}
 
+	parseTcpInfo := func() {
+		tcpInfo := &TcpInfo{}
+		data := make([]byte, binary.Size(tcpInfo))
+		copy(data, infoData)
+		err := unmarshalStruct(data, tcpInfo)
+		multiError = errorsJoin(multiError, err)
+		info.TcpInfo = tcpInfo
+	}
+
 	if len(infoData) != 0 {
-		switch uint16(*info.Protocol) {
-		case unix.IPPROTO_TCP:
-			tcpInfo := &TcpInfo{}
-			data := make([]byte, binary.Size(tcpInfo))
-			copy(data, infoData)
-			err := unmarshalStruct(data, tcpInfo)
-			multiError = errorsJoin(multiError, err)
-			info.TcpInfo = tcpInfo
-		case unix.IPPROTO_SCTP:
-			sctpInfo := &SctpInfo{}
-			data := make([]byte, binary.Size(sctpInfo))
-			copy(data, infoData)
-			err := unmarshalStruct(data, sctpInfo)
-			multiError = errorsJoin(multiError, err)
-			info.SctpInfo = sctpInfo
-		default:
-			multiError = errorsJoin(multiError, fmt.Errorf("unhandled IPPROTO (%d) for INET_DIAG_INFO",
-				*info.Protocol))
+		// When asking for a specific socket, no INET_DIAG_PROTOCOL attribute
+		// is returned...
+		if info.Protocol == nil {
+			parseTcpInfo()
+		} else {
+			switch uint16(*info.Protocol) {
+			case unix.IPPROTO_TCP:
+				parseTcpInfo()
+			case unix.IPPROTO_SCTP:
+				sctpInfo := &SctpInfo{}
+				data := make([]byte, binary.Size(sctpInfo))
+				copy(data, infoData)
+				err := unmarshalStruct(data, sctpInfo)
+				multiError = errorsJoin(multiError, err)
+				info.SctpInfo = sctpInfo
+			default:
+				multiError = errorsJoin(multiError, fmt.Errorf("unhandled IPPROTO (%d) for INET_DIAG_INFO",
+					*info.Protocol))
+			}
 		}
 	}
 
