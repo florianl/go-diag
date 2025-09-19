@@ -155,6 +155,7 @@ type NetOption struct {
 	Family   uint8
 	Protocol uint8
 	State    uint32
+	ID       SockID
 }
 
 // NetDump returns network socket information.
@@ -163,6 +164,7 @@ func (d *Diag) NetDump(opt *NetOption) ([]NetObject, error) {
 		Family:   opt.Family,
 		Protocol: opt.Protocol,
 		States:   opt.State,
+		ID:       opt.ID,
 	}
 
 	respMsgs, err := d.dumpQuery(header)
