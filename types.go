@@ -143,6 +143,7 @@ type NetAttribute struct {
 	TOS       *uint8
 	TClass    *uint8
 	Shutdown  *uint8
+	SkMemInfo *SkMemInfo
 	DCTCPInfo *DCTCPInfo
 	Protocol  *uint8
 	SKV6Only  *uint8
@@ -194,6 +195,28 @@ type MemInfo struct {
 	WMem uint32
 	FMem uint32
 	TMem uint32
+}
+
+// Based on sock_diag(7)
+type SkMemInfo struct {
+	// The amount of data in receive queue.
+	RMemAlloc uint32
+	// The receive socket buffer as set by SO_RCVBUF.
+	RcvBuff uint32
+	// The amount of data in send queue.
+	WMemAlloc uint32
+	// The send socket buffer as set by SO_SNDBUF.
+	SndBuff uint32
+	// The amount of memory scheduled for future use (TCP only).
+	FwdAlloc uint32
+	// The amount of data queued by TCP, but not yet sent.
+	WMemQueued uint32
+	// The amount of memory allocated for the socket's service needs (e.g., socket filter).
+	OptMem uint32
+	// The amount of packets in the backlog (not yet processed).
+	Backlog uint32
+	// Check https://manpages.debian.org/stretch/manpages/sock_diag.7.en.html
+	Drops uint32
 }
 
 // Based on tcp_bbr_info
