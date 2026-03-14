@@ -3,8 +3,6 @@ package diag
 import (
 	"bytes"
 	"encoding/binary"
-
-	"github.com/josharian/native"
 )
 
 // Config contains options for NETLINK_SOCK_DIAG
@@ -44,7 +42,7 @@ const (
 	inetDiagSockOpt
 )
 
-var nativeEndian = native.Endian
+var nativeEndian = binary.NativeEndian
 
 // Based on inet_diag_req_v2
 type InetDiagReqV2 struct {
