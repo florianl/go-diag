@@ -2,6 +2,7 @@ package diag
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"time"
 
@@ -84,14 +85,14 @@ func extractAttributes(data []byte, info *NetAttribute) error {
 		case inetDiagMemInfo:
 			mi := &MemInfo{}
 			err := unmarshalStruct(ad.Bytes(), mi)
-			multiError = errorsJoin(multiError, err)
+			multiError = errors.Join(multiError, err)
 			info.MemInfo = mi
 		case inetDiagInfo:
 			infoData = ad.Bytes()
 		case inetDiagVegasInfo:
 			vi := &VegasInfo{}
 			err := unmarshalStruct(ad.Bytes(), vi)
-			multiError = errorsJoin(multiError, err)
+			multiError = errors.Join(multiError, err)
 			info.VegasInfo = vi
 		case inetDiagCong:
 			info.Cong = stringPtr(ad.String())
@@ -102,14 +103,14 @@ func extractAttributes(data []byte, info *NetAttribute) error {
 		case inetDiagSKMemInfo:
 			si := &SkMemInfo{}
 			err := unmarshalStruct(ad.Bytes(), si)
-			multiError = errorsJoin(multiError, err)
+			multiError = errors.Join(multiError, err)
 			info.SkMemInfo = si
 		case inetDiagShutdown:
 			info.Shutdown = uint8Ptr(ad.Uint8())
 		case inetDiagDCTCPInfo:
 			di := &DCTCPInfo{}
 			err := unmarshalStruct(ad.Bytes(), di)
-			multiError = errorsJoin(multiError, err)
+			multiError = errors.Join(multiError, err)
 			info.DCTCPInfo = di
 		case inetDiagProtocol:
 			info.Protocol = uint8Ptr(ad.Uint8())
@@ -125,7 +126,7 @@ func extractAttributes(data []byte, info *NetAttribute) error {
 		case inetDiagBBRInfo:
 			bbrInfo := &BBRInfo{}
 			err := unmarshalStruct(ad.Bytes(), bbrInfo)
-			multiError = errorsJoin(multiError, err)
+			multiError = errors.Join(multiError, err)
 			info.BBRInfo = bbrInfo
 		case inetDiagClassID:
 			info.ClassID = uint32Ptr(ad.Uint32())
@@ -137,13 +138,13 @@ func extractAttributes(data []byte, info *NetAttribute) error {
 		case inetDiagSockOpt:
 			so := &SockOpt{}
 			err := unmarshalStruct(ad.Bytes(), so)
-			multiError = errorsJoin(multiError, err)
+			multiError = errors.Join(multiError, err)
 			info.SockOpt = so
 		default:
-			multiError = errorsJoin(multiError, fmt.Errorf("net type %d not implemented", adType))
+			multiError = errors.Join(multiError, fmt.Errorf("net type %d not implemented", adType))
 		}
 	}
-	if err := errorsJoin(multiError, ad.Err()); err != nil {
+	if err := errors.Join(multiError, ad.Err()); err != nil {
 		return err
 	}
 
@@ -152,7 +153,7 @@ func extractAttributes(data []byte, info *NetAttribute) error {
 		data := make([]byte, binary.Size(tcpInfo))
 		copy(data, infoData)
 		err := unmarshalStruct(data, tcpInfo)
-		multiError = errorsJoin(multiError, err)
+		multiError = errors.Join(multiError, err)
 		info.TcpInfo = tcpInfo
 	}
 
@@ -170,10 +171,10 @@ func extractAttributes(data []byte, info *NetAttribute) error {
 				data := make([]byte, binary.Size(sctpInfo))
 				copy(data, infoData)
 				err := unmarshalStruct(data, sctpInfo)
-				multiError = errorsJoin(multiError, err)
+				multiError = errors.Join(multiError, err)
 				info.SctpInfo = sctpInfo
 			default:
-				multiError = errorsJoin(multiError, fmt.Errorf("unhandled IPPROTO (%d) for INET_DIAG_INFO",
+				multiError = errors.Join(multiError, fmt.Errorf("unhandled IPPROTO (%d) for INET_DIAG_INFO",
 					*info.Protocol))
 			}
 		}
